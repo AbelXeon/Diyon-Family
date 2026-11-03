@@ -20,8 +20,9 @@ export async function uploadAvatar(file: FormDataEntryValue | null): Promise<{ u
   try {
     const blob = await put(`avatars/${randomUUID()}.${kind.ext}`, buf, { access: "public", contentType: kind.type });
     return { url: blob.url };
-  } catch {
-    return { url: null, error: "Photo upload failed. Check BLOB_READ_WRITE_TOKEN." };
+    } catch (e) {
+    console.error("Blob upload failed:", e);
+    return { url: null, error: `Photo upload failed: ${e instanceof Error ? e.message : "unknown error"}` };
   }
 }
 
