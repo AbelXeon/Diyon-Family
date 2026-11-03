@@ -5,7 +5,9 @@ import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getSession } from "@/lib/auth";
 import { loginAction } from "@/app/actions/auth";
-import { ActionForm, SubmitButton } from "@/components/action-form";
+import { ActionForm } from "@/components/action-form";
+import { AuthSplit } from "@/components/auth-split";
+import { AuthSubmit, FloatingInput } from "@/components/auth-fields";
 
 export const metadata = { title: "Sign in" };
 
@@ -14,24 +16,24 @@ export default async function LoginPage() {
   const [{ c }] = await db.select({ c: sql<number>`count(*)::int` }).from(users);
 
   return (
-    <>
-      <h2 className="mb-4 text-lg font-semibold">Sign in</h2>
-      <ActionForm action={loginAction} className="space-y-4">
-        <div>
-          <label className="label" htmlFor="username">Username</label>
-          <input id="username" name="username" required autoComplete="username" className="input" />
-        </div>
-        <div>
-          <label className="label" htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" required autoComplete="current-password" className="input" />
-        </div>
-        <SubmitButton className="btn btn-primary w-full">Sign in</SubmitButton>
+    <AuthSplit
+      headline="Sign in and keep every payout on track"
+      text="Welcome back. Check your family members, update this month's payments and see how everything is going."
+      formTitle="Sign in"
+      formHint="Enter your username and password to continue."
+    >
+      <ActionForm action={loginAction} className="space-y-5">
+        <FloatingInput id="username" name="username" label="Username" autoComplete="username" />
+        <FloatingInput id="password" name="password" label="Password" type="password" autoComplete="current-password" />
+        <AuthSubmit>Sign in</AuthSubmit>
       </ActionForm>
       {c === 0 && (
-        <p className="mt-4 text-center text-sm">
-          <Link href="/register" className="font-medium text-indigo-600 hover:underline">Create the admin account</Link>
+        <p className="mt-6 text-center text-sm">
+          <Link href="/register" className="font-medium text-cyan-700 hover:underline">
+            Create the admin account
+          </Link>
         </p>
       )}
-    </>
+    </AuthSplit>
   );
 }
