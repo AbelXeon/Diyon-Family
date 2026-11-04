@@ -63,7 +63,11 @@ export function shiftBucket(d: Date, unit: Unit, back: number) {
 
 export function bucketLabel(d: Date, unit: Unit) {
   const o: Intl.DateTimeFormatOptions =
-    unit === "year" ? { year: "numeric" } : unit === "month" ? { month: "short", year: "2-digit" } : { month: "short", day: "numeric" };
+    unit === "year"
+      ? { year: "numeric" }
+      : unit === "month"
+      ? { month: "short", year: "numeric" }  // Result: "Nov 2026"
+      : { month: "short", day: "numeric" };  // Result for Days/Weeks: "Nov 4"
   return d.toLocaleDateString("en-US", { ...o, timeZone: "UTC" });
 }
 
