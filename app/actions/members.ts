@@ -110,18 +110,43 @@ export async function setPayoutStatusAction(memberId: string, month: string, sta
     .limit(1);
   if (!m) return;
 
-  const isPaid = p.data.status === "paid";
+  const [row] = await db
+    .select({ status: payouts.status })
+    .from(payouts)
+    .where(and(eq(payouts.memberId, p.data.memberId), eq(payouts.month, p.data.month)))
+    .limit(1);
+  // old rows: "unpaid" counts as In Progress, "success" counts as Success stage
+  const current = !row || row.status === "unpaid" ? "in_progress" : row.status === "success" ? "claimed" : row.status;
+
+  const requested = p.data.status;
+  let next: typeof requested = requested === "success" ? "claimed" : requested;
+
+  if (next === "unpaid") {
+    if (current !== "paid") return; // Unpaid is the normal state, nothing to change
+    next = "claimed"; // Paid -> Unpaid goes back to Success
+  }
+  if (next === "in_progress" && current !== "in_progress") return; // no going back
+  if (next === "paid" && current !== "claimed") return; // Paid only after Success
+  if (next === current) return;
+
+  const isPaid = next === "paid";
   await db
     .insert(payouts)
-    .values({ memberId: p.data.memberId, month: p.data.month, amount: m.amount, status: p.data.status, paidAt: isPaid ? new Date() : null })
+    .values({ memberId: p.data.memberId, month: p.data.month, amount: m.amount, status: next, paidAt: isPaid ? new Date() : null })
     .onConflictDoUpdate({
       target: [payouts.memberId, payouts.month],
       set: {
-        status: p.data.status,
+        status: next,
         paidAt: isPaid ? sql`coalesce(${payouts.paidAt}, now())` : null,
         updatedAt: new Date(),
       },
     });
-  await logActivity({ ownerId, actorName: user.name, type: "status_changed", subject: m.fullName, detail: p.data.status });
+  await logActivity({
+    ownerId,
+    actorName: user.name,
+    type: "status_changed",
+    subject: m.fullName,
+    detail: requested === "unpaid" ? "unpaid" : next,
+  });
   refresh();
 }
