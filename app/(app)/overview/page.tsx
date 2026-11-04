@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { members, payouts } from "@/lib/db/schema";
 import { ownerIdOf, requireUser } from "@/lib/auth";
 import { ensureCyclePayouts } from "@/lib/payouts";
-import { STATUS_META, STATUS_VALUES } from "@/lib/status";
+import { STATUS_META, VISIBLE_STATUSES } from "@/lib/status";
 import { RANGES, bucketLabel, bucketStart, currentCycleMonth, formatMoney, monthLabel, shiftBucket } from "@/lib/utils";
 import { OverviewChart } from "@/components/overview-chart";
 import { RecentActivity } from "@/components/recent-activity";
@@ -103,7 +103,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         <div className="card">
           <h2 className="font-display mb-4 text-2xl tracking-wide text-brand-900">This month by status</h2>
           <ul className="space-y-3">
-            {STATUS_VALUES.map((s) => (
+            {VISIBLE_STATUSES.map((s) => (
               <li key={s} className="flex items-center justify-between gap-3">
                 <span className={`rounded-full px-3 py-1 text-sm font-medium ring-1 ${STATUS_META[s].badge}`}>{STATUS_META[s].label}</span>
                 <span className="text-right text-sm">

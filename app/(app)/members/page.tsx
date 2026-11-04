@@ -58,7 +58,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
     )
     .orderBy(order);
 
-  const cols = "md:grid md:grid-cols-[2fr_1.2fr_1fr_1.4fr_auto] md:items-center md:gap-4";
+const cols = "md:grid md:grid-cols-[1.5fr_1fr_0.8fr_2.4fr_auto] md:items-center md:gap-4";
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">

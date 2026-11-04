@@ -8,3 +8,5 @@ export const STATUS_META: Record<PayoutStatus, { label: string; badge: string }>
   paid: { label: "Paid", badge: "bg-emerald-50 text-emerald-800 ring-emerald-300" },
   unpaid: { label: "Unpaid", badge: "bg-rose-50 text-rose-800 ring-rose-300" },
 };
+
+export const VISIBLE_STATUSES: PayoutStatus[] = ["in_progress", "claimed", "paid", "unpaid"];
