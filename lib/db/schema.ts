@@ -60,3 +60,18 @@ export const payouts = pgTable(
   },
   (t) => [uniqueIndex("payouts_member_month_idx").on(t.memberId, t.month)]
 );
+
+
+export const activityLog = pgTable(
+  "activity_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerId: uuid("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    actorName: text("actor_name").notNull(),
+    type: text("type").notNull(), // member_added | member_updated | member_deleted | status_changed
+    subject: text("subject").notNull(), // the member's name
+    detail: text("detail"), // for status changes: the new status
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("activity_owner_created_idx").on(t.ownerId, t.createdAt)]
+);

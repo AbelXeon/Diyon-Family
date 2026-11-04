@@ -8,6 +8,7 @@ import { ensureCyclePayouts } from "@/lib/payouts";
 import { STATUS_META, STATUS_VALUES } from "@/lib/status";
 import { RANGES, bucketLabel, bucketStart, currentCycleMonth, formatMoney, monthLabel, shiftBucket } from "@/lib/utils";
 import { OverviewChart } from "@/components/overview-chart";
+import { RecentActivity } from "@/components/recent-activity";
 
 export const metadata = { title: "Overview" };
 
@@ -34,7 +35,6 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   const totalAmount = statusRows.reduce((a, r) => a + Number(r.total), 0);
   const paidAmount = Number(by.paid?.total ?? 0);
 
-  // chart: paid amounts grouped by day / week / month / year
   const start = bucketStart(new Date(), unit);
   const first = shiftBucket(start, unit, n - 1);
   const bucketExpr = sql<string>`to_char(date_trunc(${sql.raw(`'${unit}'`)}, ${payouts.paidAt}), 'YYYY-MM-DD')`;
@@ -59,21 +59,21 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-[1800px] space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Overview</h1>
+        <h1 className="font-display text-5xl tracking-wide text-brand-900">Overview</h1>
         <p className="text-sm text-slate-500">Payout cycle: {monthLabel(cycle)}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="card flex items-center gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-              <s.icon className="h-5 w-5" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-200 to-teal-400 text-brand-900">
+              <s.icon className="h-6 w-6" />
             </span>
             <div className="min-w-0">
               <p className="text-sm text-slate-500">{s.label}</p>
-              <p className="truncate text-xl font-semibold">{s.value}</p>
+              <p className="font-display truncate text-3xl tracking-wide text-brand-900">{s.value}</p>
             </div>
           </div>
         ))}
@@ -82,13 +82,15 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="card xl:col-span-2">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-semibold">Paid amount</h2>
-            <div className="flex rounded-lg bg-slate-100 p-1">
+            <h2 className="font-display text-2xl tracking-wide text-brand-900">Paid amount</h2>
+            <div className="flex rounded-full bg-brand-50 p-1">
               {Object.entries(RANGES).map(([k, v]) => (
                 <Link
                   key={k}
                   href={`/overview?range=${k}`}
-                  className={`rounded-md px-3 py-1 text-sm ${k === rangeKey ? "bg-white font-medium shadow-sm" : "text-slate-600"}`}
+                  className={`font-display rounded-full px-4 py-1 text-lg tracking-wider ${
+                    k === rangeKey ? "bg-brand-900 text-white" : "text-slate-600"
+                  }`}
                 >
                   {v.label}
                 </Link>
@@ -99,7 +101,7 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
         </div>
 
         <div className="card">
-          <h2 className="mb-4 font-semibold">This month by status</h2>
+          <h2 className="font-display mb-4 text-2xl tracking-wide text-brand-900">This month by status</h2>
           <ul className="space-y-3">
             {STATUS_VALUES.map((s) => (
               <li key={s} className="flex items-center justify-between gap-3">
@@ -113,6 +115,8 @@ export default async function OverviewPage({ searchParams }: { searchParams: Pro
           </ul>
         </div>
       </div>
+
+      <RecentActivity ownerId={ownerId} />
     </div>
   );
 }

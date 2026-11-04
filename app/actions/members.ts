@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { members, payouts } from "@/lib/db/schema";
 import { ownerIdOf, requireUser } from "@/lib/auth";
 import { deleteAvatar, uploadAvatar } from "@/lib/avatar";
+import { logActivity } from "@/lib/activity";
 import { amountSchema, monthSchema, nameSchema, statusSchema } from "@/lib/validation";
 import { currentCycleMonth, isUniqueViolation } from "@/lib/utils";
 import type { FormState } from "@/lib/types";
@@ -37,6 +38,7 @@ export async function createMemberAction(_prev: FormState, fd: FormData): Promis
     await deleteAvatar(up.url);
     return { error: isUniqueViolation(e) ? "This app ID already exists" : "Could not save member" };
   }
+  await logActivity({ ownerId, actorName: user.name, type: "member_added", subject: p.data.fullName });
   refresh();
   return { success: "Member added" };
 }
@@ -75,6 +77,7 @@ export async function updateMemberAction(_prev: FormState, fd: FormData): Promis
       .set({ amount: p.data.amount, updatedAt: new Date() })
       .where(and(eq(payouts.memberId, old.id), eq(payouts.month, currentCycleMonth()), ne(payouts.status, "paid")));
   }
+  await logActivity({ ownerId, actorName: user.name, type: "member_updated", subject: p.data.fullName });
   refresh();
   return { success: "Member updated" };
 }
@@ -86,8 +89,11 @@ export async function deleteMemberAction(id: string) {
   const [m] = await db
     .delete(members)
     .where(and(eq(members.id, id), eq(members.ownerId, ownerId)))
-    .returning({ avatarUrl: members.avatarUrl });
-  if (m) await deleteAvatar(m.avatarUrl);
+    .returning({ avatarUrl: members.avatarUrl, fullName: members.fullName });
+  if (m) {
+    await deleteAvatar(m.avatarUrl);
+    await logActivity({ ownerId, actorName: user.name, type: "member_deleted", subject: m.fullName });
+  }
   refresh();
 }
 
@@ -98,7 +104,7 @@ export async function setPayoutStatusAction(memberId: string, month: string, sta
   if (!p.success) return;
 
   const [m] = await db
-    .select({ amount: members.amount })
+    .select({ amount: members.amount, fullName: members.fullName })
     .from(members)
     .where(and(eq(members.id, p.data.memberId), eq(members.ownerId, ownerId)))
     .limit(1);
@@ -116,5 +122,6 @@ export async function setPayoutStatusAction(memberId: string, month: string, sta
         updatedAt: new Date(),
       },
     });
+  await logActivity({ ownerId, actorName: user.name, type: "status_changed", subject: m.fullName, detail: p.data.status });
   refresh();
 }
