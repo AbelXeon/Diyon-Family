@@ -1,7 +1,7 @@
-export const CURRENCY = "USD";
+export const CURRENCY = "ETB";
 
 export function formatMoney(n: number | string) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: CURRENCY }).format(Number(n));
+  return new Intl.NumberFormat("en-ET", { style: "currency", currency: CURRENCY }).format(Number(n));
 }
 
 /** The payout cycle opens on the 5th. Before the 5th we still show last month. */
